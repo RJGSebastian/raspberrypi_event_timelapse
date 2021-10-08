@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/raspberrypi_timelapse.iml" filepath="$PROJECT_DIR$/.idea/raspberrypi_timelapse.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/raspberrypi_event_timelapse.iml" filepath="$PROJECT_DIR$/.idea/raspberrypi_event_timelapse.iml" />
     </modules>
   </component>
 </project>
