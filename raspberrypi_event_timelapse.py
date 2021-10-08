@@ -34,7 +34,8 @@ def get_event_utc(obs, event):
     if event == "sunset":
         return obs.next_setting(ephem.Sun())
 
-    print("functin get_event_utc has gotten some wrong value:\nobs: " + obs + "\nevent: " + event)
+    print("Function get_event_utc has gotten some wrong value:\nobs: " + obs + "\nevent: " + event)
+    return False
 
 
 def get_next_event(timespan_in_minutes, obs=get_ephem_observer()):
@@ -61,7 +62,7 @@ def get_next_event(timespan_in_minutes, obs=get_ephem_observer()):
 
 
 def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=False, stats=False):
-    print("starting timelapse for event <" + event + ">. current time: " + str(datetime.datetime.now()))
+    print("Starting timelapse for event <" + event + ">. current time: " + str(datetime.datetime.now()))
 
     while (end_time - datetime.datetime.now()).total_seconds() >= 0:
         now = datetime.datetime.now()
@@ -78,13 +79,13 @@ def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=
 
             subprocess.run(["bash", "/home/pi/timelapse/get_temp.sh", "2"])
         else:
-            print("you can only do this on the raspberrypi")
+            print("You can only do this on the raspberrypi")
 
         time_to_sleep = int((now - datetime.datetime.now()).total_seconds()) + seconds_between_pictures
-        print("sleeping for <" + str(time_to_sleep) + "> seconds")
+        print("Sleeping for <" + str(time_to_sleep) + "> seconds")
         time.sleep(time_to_sleep)
 
-    print("finished timelapse for event <" + event + ">. current time: " + str(datetime.datetime.now()))
+    print("Finished timelapse for event <" + event + ">. current time: " + str(datetime.datetime.now()))
 
 
 def main(timespan, my_obs):
@@ -92,15 +93,16 @@ def main(timespan, my_obs):
         current_event, seconds_till_event, event_ongoing = get_next_event(timespan_in_minutes=timespan, obs=my_obs)
 
         if current_event == "midnight": # no timelapse for midnight
+            print("All events for today are over, sleeping until after midnight for <" + str(int(seconds_till_event) + 60) + "> seconds.")
             time.sleep(seconds_till_event + 60)  # sleep past midnight, waits for next day and checks for next events
         else:
             if not event_ongoing:  # sleep until it is time to start the timelapse
-                print("no event ongoing, next event is <" + current_event + "> in <" + str(
+                print("No event ongoing, next event is <" + current_event + "> in <" + str(
                     int(seconds_till_event)) + "> seconds. \n Going to sleep for <" + str(
                     int(seconds_till_event - 90 * 60)) + "> seconds.")
                 time.sleep(int(seconds_till_event - 90 * 60))
 
-            print("event ongoing, current event is <" + current_event + "> since <" + str(
+            print("Event ongoing, current event is <" + current_event + "> since <" + str(
                 90 * 60 - abs(int(seconds_till_event))) + "> seconds.")
 
             event_end_time = datetime.datetime.now() + datetime.timedelta(minutes=timespan)
@@ -108,6 +110,7 @@ def main(timespan, my_obs):
 
 
 if __name__ == "__main__":
+    print("Starting raspberypi_event_timelapse.py")
     # timespan in minutes, my_obs is an epehm observer
     main(timespan=180, my_obs=get_ephem_observer())
 
