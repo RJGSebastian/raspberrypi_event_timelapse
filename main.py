@@ -109,5 +109,3 @@ if __name__ == "__main__":
     # timespan in minutes, my_obs is an epehm observer
     main(timespan=180, my_obs=get_ephem_observer())
 
-# todo:
-# - add event midnight, just so it waits until next day to check for events again.
