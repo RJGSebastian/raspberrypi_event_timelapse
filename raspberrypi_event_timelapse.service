@@ -1,0 +1,9 @@
+[Unit]
+Description=Checks for events (Sunrise, Noon, Sunset) and takes images before and after these events.
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=Simple
+ExecStart=/usr/bin/python3 /opt/raspberrypi_event_timelapse/raspberrypi_event_timelapse.py
