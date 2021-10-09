@@ -6,4 +6,4 @@ WantedBy=multi-user.target
 
 [Service]
 Type=Simple
-ExecStart=/usr/bin/python3 /opt/raspberrypi_event_timelapse/raspberrypi_event_timelapse.py
+ExecStart=/usr/bin/env bash /opt/raspberrypi_event_timelapse/start_raspberrypi_event_timelapse.sh

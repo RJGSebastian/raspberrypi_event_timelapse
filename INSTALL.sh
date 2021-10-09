@@ -6,7 +6,7 @@ sudo mkdir "/opt/raspberrypi_event_timelapse"
 
 # moving script
 echo "Copying files to installation directory..."
-sudo cp $PWD/raspberrypi_event_timelapse.py "/opt/raspberrypi_event_timelapse/"
+sudo cp $PWD/raspberrypi_event_timelapse.py $PWD/start_raspberrypi_event_timelapse "/opt/raspberrypi_event_timelapse/"
 
 # moving service file
 echo "Copying service files to systemd directory"
