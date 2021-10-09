@@ -62,14 +62,16 @@ def get_next_event(timespan_in_minutes, obs=get_ephem_observer()):
 
 
 def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=False, stats=False):
-    print("Starting timelapse for event <" + event + ">. current time: " + str(datetime.datetime.now()))
+    print("Starting timelapse for event <" + event + ">. current time: <" + str(datetime.datetime.now()) + "> event ends at: <" + str(end_time) + ">.")
 
     while (end_time - datetime.datetime.now()).total_seconds() >= 0:
         now = datetime.datetime.now()
         if platform.node() == "raspberrypi":
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+
+            print("Making image with raspistill with timestamp: " + timestamp + "...")
             subprocess.run(["bash", "/home/pi/timelapse/get_temp.sh", "1"])
 
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
             command = "raspistill --nopreview " \
                       + ("--verbose " if verbose else "") \
                       + ("--raw " if raw else "") \
@@ -103,9 +105,9 @@ def main(timespan, my_obs):
                 time.sleep(int(seconds_till_event - 90 * 60))
 
             print("Event ongoing, current event is <" + current_event + "> since <" + str(
-                90 * 60 - abs(int(seconds_till_event))) + "> seconds.")
+                90 * 60 + int(seconds_till_event)) + "> seconds.")
 
-            event_end_time = datetime.datetime.now() + datetime.timedelta(minutes=timespan)
+            event_end_time = datetime.datetime.now() + datetime.timedelta(minutes=(timespan / 2)) - datetime.timedelta(seconds=abs(seconds_till_event))
             timelapse(current_event, event_end_time, verbose=True, raw=True, stats=True)
 
 
