@@ -69,7 +69,7 @@ def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=
         if platform.node() == "raspberrypi":
             subprocess.run(["bash", "/home/pi/timelapse/get_temp.sh", "1"])
 
-            timestamp = datetime.datetime.now().isoformat('-', 'minutes').replace(':', '-')
+            timestamp = datetime.datetime.now().isoformat(sep='-', timespec='minutes').replace(':', '-')
             command = "raspistill --nopreview " \
                       + ("--verbose " if verbose else "") \
                       + ("--raw " if raw else "") \
