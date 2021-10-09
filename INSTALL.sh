@@ -40,8 +40,10 @@ export LANG=en_US.UTF-8 # language of next command to search for not installed p
 # shellcheck disable=SC2068
 pkgs=$(dpkg -l ${required_packages[@]} 2>&1 | awk '{if (/^D|^\||^\+/) {next} else if(/^dpkg-query:/) { print $6} else if(!/^[hi]i/) {print $2}}')
 
-# shellcheck disable=SC2068
-install_missing_packages ${pkgs[@]}
+if [[ "$pkgs" != "" ]]; then
+  # shellcheck disable=SC2068
+  install_missing_packages ${pkgs[@]}
+fi
 
 # installing python packages
 sudo /usr/bin/env pip3 install ephem
