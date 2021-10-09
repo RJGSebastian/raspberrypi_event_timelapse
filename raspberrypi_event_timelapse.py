@@ -108,7 +108,7 @@ def main(timespan, my_obs):
                 90 * 60 + int(seconds_till_event)) + "> seconds.")
 
             event_end_time = datetime.datetime.now() + datetime.timedelta(minutes=(timespan / 2)) - datetime.timedelta(seconds=abs(seconds_till_event))
-            timelapse(current_event, event_end_time, verbose=True, raw=True, stats=True)
+            timelapse(current_event, event_end_time, verbose=False, raw=True, stats=True)
 
 
 if __name__ == "__main__":
