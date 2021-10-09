@@ -5,5 +5,5 @@ Description=Checks for events (Sunrise, Noon, Sunset) and takes images before an
 WantedBy=multi-user.target
 
 [Service]
-Type=Simple
+Type=simple
 ExecStart=/usr/bin/env bash /opt/raspberrypi_event_timelapse/start_raspberrypi_event_timelapse.sh
