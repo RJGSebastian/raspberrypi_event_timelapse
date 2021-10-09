@@ -3,7 +3,7 @@
 set -e # exit on error
 
 # you can change this path
-dir="$HOME/raspberrypi_event_timelapse_logs"
+dir="/opt/raspberrypi_event_timelapse/logs"
 mkdir -p "${dir}"
 
 logfile="${dir}/log_$(date +%Y-%m-%d-%H-%M)"
