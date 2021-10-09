@@ -32,6 +32,7 @@ install_missing_packages()
   fi
 }
 
+echo "Checking for required packages to install"
 required_packages=("python3" "python3-pip")
 
 export LANG=en_US.UTF-8 # language of next command to search for not installed packages breaks when output is in another language
@@ -47,8 +48,12 @@ else
   echo "no packages need to be installed."
 fi
 
+echo "Installing necessary python packages"
+
+required_python_packages=("ephem" "datetime")
 # installing python packages
-sudo /usr/bin/env pip3 install ephem
+# shellcheck disable=SC2068
+sudo /usr/bin/env pip3 install ${required_python_packages[@]}
 
 echo "Starting service"
 sudo systemctl start raspberrypi_event_timelapse
