@@ -33,6 +33,9 @@ install_missing_packages()
 }
 
 required_packages=("python3" "python3-pip")
+
+export LANG=en_US.UTF-8 # language of next command to search for not installed packages breaks when output is in another language
+
 # shellcheck disable=SC2119
 # shellcheck disable=SC2068
 pkgs=$(dpkg -l ${required_packages[@]} 2>&1 | awk '{if (/^D|^\||^\+/) {next} else if(/^dpkg-query:/) { print $6} else if(!/^[hi]i/) {print $2}}')
