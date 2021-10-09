@@ -43,6 +43,8 @@ pkgs=$(dpkg -l ${required_packages[@]} 2>&1 | awk '{if (/^D|^\||^\+/) {next} els
 if [[ "$pkgs" != "" ]]; then
   # shellcheck disable=SC2068
   install_missing_packages ${pkgs[@]}
+else
+  echo "no packages need to be installed."
 fi
 
 # installing python packages
