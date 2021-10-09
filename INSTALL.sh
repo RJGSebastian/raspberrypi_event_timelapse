@@ -2,11 +2,11 @@
 
 echo "Installing raspberrypi_event_timelapse to /opt/raspberrypi_event_timelapse"
 
-sudo mkdir "/opt/raspberrypi_event_timelapse"
+sudo mkdir -p "/opt/raspberrypi_event_timelapse"
 
 # moving script
 echo "Copying files to installation directory..."
-sudo cp "$PWD/raspberrypi_event_timelapse.py" "$PWD/start_raspberrypi_event_timelapse" "/opt/raspberrypi_event_timelapse/"
+sudo cp "$PWD/raspberrypi_event_timelapse.py" "$PWD/start_raspberrypi_event_timelapse.sh" "/opt/raspberrypi_event_timelapse/"
 
 # moving service file
 echo "Copying service files to systemd directory"
@@ -20,7 +20,7 @@ install_missing_packages()
 {
   msg=$'The following packages are missing:\n\t'"$*"$'\nDo you want to install them? [Y/n]:'
 
-  read -pr "$msg" answer
+  read -p "$msg" answer
 
   if [[ "$answer" =~ [Yy] ]]; then
     echo "Missing packages will be installed..."
@@ -32,7 +32,7 @@ install_missing_packages()
   fi
 }
 
-required_packages=("python3" "pip3")
+required_packages=("python3" "python3-pip")
 # shellcheck disable=SC2119
 # shellcheck disable=SC2068
 pkgs=$(dpkg -l ${required_packages[@]} 2>&1 | awk '{if (/^D|^\||^\+/) {next} else if(/^dpkg-query:/) { print $6} else if(!/^[hi]i/) {print $2}}')
@@ -41,7 +41,7 @@ pkgs=$(dpkg -l ${required_packages[@]} 2>&1 | awk '{if (/^D|^\||^\+/) {next} els
 install_missing_packages ${pkgs[@]}
 
 # installing python packages
-/usr/bin/env pip3 install ephem
+sudo /usr/bin/env pip3 install ephem
 
 echo "Starting service"
 sudo systemctl start raspberrypi_event_timelapse
