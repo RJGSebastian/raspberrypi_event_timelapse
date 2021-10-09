@@ -6,24 +6,42 @@ sudo mkdir "/opt/raspberrypi_event_timelapse"
 
 # moving script
 echo "Copying files to installation directory..."
-sudo cp $PWD/raspberrypi_event_timelapse.py $PWD/start_raspberrypi_event_timelapse "/opt/raspberrypi_event_timelapse/"
+sudo cp "$PWD/raspberrypi_event_timelapse.py" "$PWD/start_raspberrypi_event_timelapse" "/opt/raspberrypi_event_timelapse/"
 
 # moving service file
 echo "Copying service files to systemd directory"
-sudo cp $PWD/raspberrypi_event_timelapse.service /etc/systemd/system
+sudo cp "$PWD/raspberrypi_event_timelapse.service" "/etc/systemd/system"
 
 # enabling systemd service
 echo "Enabling service..."
 sudo systemctl enable raspberrypi_event_timelapse.service
 
-# checking for python3 installation (https://stackoverflow.com/a/22592801/12322699)
-echo "checking python3 installation..."
-if [ $(dpkg-query -W -f='${Status}' python3 2>/dev/null | grep -c "ok installed") -eq 0 ];
-then
-  # python3 not installed
-  echo "installing python3..."
-  apt-get install python3;
-fi
+install_missing_packages()
+{
+  msg=$'The following packages are missing:\n\t'"$*"$'\nDo you want to install them? [Y/n]:'
+
+  read -pr "$msg" answer
+
+  if [[ "$answer" =~ [Yy] ]]; then
+    echo "Missing packages will be installed..."
+    # shellcheck disable=SC2068
+    apt-get install $@
+  else
+    echo "Missing packages will not be installed, stopping installation..."
+    return "3" 2>/dev/null || exit "3"
+  fi
+}
+
+required_packages=("python3" "pip3")
+# shellcheck disable=SC2119
+# shellcheck disable=SC2068
+pkgs=$(dpkg -l ${required_packages[@]} 2>&1 | awk '{if (/^D|^\||^\+/) {next} else if(/^dpkg-query:/) { print $6} else if(!/^[hi]i/) {print $2}}')
+
+# shellcheck disable=SC2068
+install_missing_packages ${pkgs[@]}
+
+# installing python packages
+/usr/bin/env pip3 install ephem
 
 echo "Starting service"
 sudo systemctl start raspberrypi_event_timelapse
