@@ -70,7 +70,7 @@ def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=
         if platform.node() == "raspberrypi":
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
 
-            print("Making image with raspistill with timestamp: " + timestamp + "...")
+            #print("Making image with raspistill with timestamp: " + timestamp + "...")
             subprocess.run(["bash", "/home/pi/timelapse/get_temp.sh", "1"])
 
             command = "raspistill --nopreview " \
@@ -85,7 +85,7 @@ def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=
             print("You can only do this on the raspberrypi")
 
         time_to_sleep = int((now - datetime.datetime.now()).total_seconds()) + seconds_between_pictures
-        print("Sleeping for <" + str(time_to_sleep) + "> seconds")
+        #print("Sleeping for <" + str(time_to_sleep) + "> seconds")
         time.sleep(time_to_sleep)
 
     print("Finished timelapse for event <" + event + ">. current time: " + str(datetime.datetime.now()))
@@ -111,12 +111,13 @@ def main(timespan, my_obs):
             print("Event ongoing, current event is <" + current_event + "> since <" + str(
                 90 * 60 + seconds_till_event) + "> seconds.")
 
-            event_end_time = datetime.datetime.now() + datetime.timedelta(minutes=(timespan / 2)) - datetime.timedelta(
+            event_end_time = datetime.datetime.now() + datetime.timedelta(minutes=timespan) - datetime.timedelta(
                 seconds=(0 if seconds_till_event >= 0 else abs(seconds_till_event)))
+
             timelapse(current_event, event_end_time, verbose=False, raw=True, stats=True)
 
 
 if __name__ == "__main__":
-    print("Starting raspberypi_event_timelapse.py")
+    print("Starting raspberrypi_event_timelapse.py")
     # timespan in minutes, my_obs is an epehm observer
     main(timespan=180, my_obs=get_ephem_observer())
