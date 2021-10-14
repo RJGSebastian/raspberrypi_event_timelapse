@@ -39,6 +39,7 @@ def get_event_utc(obs, event):
 
 
 def get_next_event(timespan_in_minutes, obs=get_ephem_observer()):
+    print("Checking for next event. Current time: " + str(datetime.datetime.now()))
     now = datetime.datetime.now()  # current date and time
     events = ["sunrise", "noon", "sunset", "midnight"]
 
@@ -48,6 +49,8 @@ def get_next_event(timespan_in_minutes, obs=get_ephem_observer()):
     for event in events:
         # if timediff < 0 event has passed, need to check if its still within timespan
         timediff = (get_event(obs, event) - now).total_seconds()
+
+        #print(event + " --- " + str(get_event(obs, event)))
 
         # and not event == "midnight" ## not necessary since midnight is checked last either way
         if abs(timediff) <= (timespan_in_minutes / 2 * 60):
@@ -88,7 +91,7 @@ def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=
         #print("Sleeping for <" + str(time_to_sleep) + "> seconds")
         time.sleep(time_to_sleep)
 
-    print("Finished timelapse for event <" + event + ">. current time: " + str(datetime.datetime.now()))
+    print("Finished timelapse for event <" + event + ">. current time: <" + str(datetime.datetime.now()) + ">.")
 
 
 def main(timespan, my_obs):
@@ -107,12 +110,12 @@ def main(timespan, my_obs):
                     seconds_till_event) + "> seconds. \n Going to sleep for <" + str(
                     seconds_till_event - 90 * 60) + "> seconds.")
                 time.sleep(seconds_till_event - 90 * 60)
-
-            print("Event ongoing, current event is <" + current_event + "> since <" + str(
-                90 * 60 + seconds_till_event) + "> seconds.")
-
-            event_end_time = datetime.datetime.now() + datetime.timedelta(minutes=timespan) - datetime.timedelta(
-                seconds=(0 if seconds_till_event >= 0 else abs(seconds_till_event)))
+                print("Event is now starting, current event is <" + current_event + ">. Current time: <" + str(
+                    datetime.datetime.now()) + ">.")
+                event_end_time = datetime.datetime.now() + datetime.timedelta(minutes=timespan)
+            else:
+                print("Event ongoing, current event is <" + current_event + "> and has been ongoing since <" + str((timespan / 2) - seconds_till_event / 60) + "> minutes. Current time: <" + str(datetime.datetime.now()) + ">.")
+                event_end_time = datetime.datetime.now() + datetime.timedelta(minutes=timespan) - datetime.timedelta(seconds=abs(seconds_till_event))
 
             timelapse(current_event, event_end_time, verbose=False, raw=True, stats=True)
 
