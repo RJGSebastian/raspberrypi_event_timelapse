@@ -75,7 +75,7 @@ def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
 
             # print("Making image with raspistill with timestamp: " + timestamp + "...")
-            subprocess.run(["bash", "/home/pi/timelapse/save_temp.sh", "1"])
+            subprocess.run(["bash", "/home/pi/timelapse/scripts/save_temp.sh", "1"])
 
             command = "raspistill --nopreview " \
                       + ("--verbose " if verbose else "") \
@@ -84,7 +84,7 @@ def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=
                       + "--output \"/home/pi/timelapse/" + event + "/" + timestamp + ".jpg\""
             subprocess.run(command, shell=True)
 
-            subprocess.run(["bash", "/home/pi/timelapse/save_temp.sh", "2"])
+            subprocess.run(["bash", "/home/pi/timelapse/scripts/save_temp.sh", "2"])
         else:
             print("You can only do this on the raspberrypi")
 
