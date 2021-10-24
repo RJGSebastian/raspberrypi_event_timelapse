@@ -16,6 +16,8 @@ def get_ephem_observer():
     obs.lon = str(8.760951)
     obs.elev = 194.8414459228516
 
+    obs.horizon = "0"
+
     return obs
 
 
@@ -26,7 +28,6 @@ def get_event(obs, event):
 
 
 def get_event_utc(obs, event):
-    obs.horizon = "0"
     if event == "sunrise":
         return obs.next_rising(ephem.Sun())
     if event == "noon":
@@ -74,7 +75,7 @@ def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
 
             # print("Making image with raspistill with timestamp: " + timestamp + "...")
-            subprocess.run(["bash", "/home/pi/timelapse/get_temp.sh", "1"])
+            subprocess.run(["bash", "/home/pi/timelapse/save_temp.sh", "1"])
 
             command = "raspistill --nopreview " \
                       + ("--verbose " if verbose else "") \
@@ -83,7 +84,7 @@ def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=
                       + "--output \"/home/pi/timelapse/" + event + "/" + timestamp + ".jpg\""
             subprocess.run(command, shell=True)
 
-            subprocess.run(["bash", "/home/pi/timelapse/get_temp.sh", "2"])
+            subprocess.run(["bash", "/home/pi/timelapse/save_temp.sh", "2"])
         else:
             print("You can only do this on the raspberrypi")
 
