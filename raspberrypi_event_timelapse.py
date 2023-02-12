@@ -6,6 +6,8 @@ import datetime
 import ephem
 import subprocess
 
+# timespan before and after event in seconds
+TIMESPAN = 90 * 60
 
 def get_ephem_observer():
     obs = ephem.Observer()
@@ -39,7 +41,15 @@ def get_event_utc(obs, event):
     return False
 
 
-def get_next_event(timespan_in_minutes, obs=get_ephem_observer()):
+# get_next_event
+#   - timespan_in_minutes := int
+# returns
+#   - currently ongoing or next event if none ongoing
+#   - time from event till now or time until event
+#   - bool if event is ongoing
+def get_next_event():
+    obs=get_ephem_observer()
+
     print("Checking for next event. Current time: " + str(datetime.datetime.now()))
     now = datetime.datetime.now()  # current date and time
     events = ["sunrise", "noon", "sunset", "midnight"]
@@ -51,10 +61,8 @@ def get_next_event(timespan_in_minutes, obs=get_ephem_observer()):
         # if timediff < 0 event has passed, need to check if its still within timespan
         timediff = (get_event(obs, event) - now).total_seconds()
 
-        # print(event + " --- " + str(get_event(obs, event)))
-
         # and not event == "midnight" ## not necessary since midnight is checked last either way
-        if abs(timediff) <= (timespan_in_minutes / 2 * 60):
+        if abs(timediff) <= TIMESPAN / 2:
             # returns: current event, time from event till now/ or time until event, event is ongoing.
             return event, timediff, True
 
@@ -72,7 +80,7 @@ def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=
     while (end_time - datetime.datetime.now()).total_seconds() >= 0:
         now = datetime.datetime.now()
         if platform.node() == "raspberrypi":
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+            timestamp = now.strftime("%Y-%m-%d-%H-%M")
 
             # print("Making image with raspistill with timestamp: " + timestamp + "...")
             subprocess.run(["bash", "/home/pi/timelapse/scripts/save_temp.sh", "1"])
@@ -95,11 +103,10 @@ def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=
     print("Finished timelapse for event <" + event + ">. current time: <" + str(datetime.datetime.now()) + ">.")
 
 
-def main(timespan):
-    my_obs = get_ephem_observer()
+def main():
 
     while True:
-        current_event, seconds_till_event, event_ongoing = get_next_event(timespan_in_minutes=timespan, obs=my_obs)
+        current_event, seconds_till_event, event_ongoing = get_next_event()
 
         seconds_till_event = int(seconds_till_event)
 
@@ -107,27 +114,23 @@ def main(timespan):
             print("All events for today are over, sleeping until after midnight for <" + str(
                 seconds_till_event + 60) + "> seconds.")
             time.sleep(seconds_till_event + 60)  # sleep past midnight, waits for next day and checks for next events
-            my_obs = get_ephem_observer()
         else:
             if not event_ongoing:  # sleep until it is time to start the timelapse
                 print("No event ongoing, next event is <" + current_event + "> in <" + str(
                     seconds_till_event) + "> seconds. \n Going to sleep for <" + str(
-                    seconds_till_event - 90 * 60) + "> seconds.")
-                time.sleep(seconds_till_event - 90 * 60)
+                    seconds_till_event - TIMESPAN / 2) + "> seconds.")
+                time.sleep(seconds_till_event - TIMESPAN / 2)
                 print("Event is now starting, current event is <" + current_event + ">. Current time: <" + str(
                     datetime.datetime.now()) + ">.")
-                event_end_time = datetime.datetime.now() + datetime.timedelta(minutes=timespan)
             else:
                 print("Event ongoing, current event is <" + current_event + "> and has been ongoing since <" + str(
-                    (timespan / 2) - seconds_till_event / 60) + "> minutes. Current time: <" + str(
+                    (TIMESPAN / 2 - seconds_till_event) / 60) + "> minutes. Current time: <" + str(
                     datetime.datetime.now()) + ">.")
-                event_end_time = datetime.datetime.now() + datetime.timedelta(minutes=timespan) - datetime.timedelta(
-                    seconds=abs(seconds_till_event))
 
+            event_end_time = datetime.datetime.now() + datetime.timedelta(seconds=TIMESPAN)
             timelapse(current_event, event_end_time, verbose=False, raw=True, stats=True)
 
 
 if __name__ == "__main__":
     print("Starting raspberrypi_event_timelapse.py")
-    # timespan in minutes, my_obs is an epehm observer
-    main(timespan=180)
+    main()
