@@ -26,10 +26,12 @@ def get_ephem_observer():
 
     return obs
 
+
 def get_event(obs, event):
     if event == "midnight":
         return datetime.datetime.combine(datetime.date.today(), datetime.time.max)
     return ephem.localtime(get_event_utc(obs, event))
+
 
 def get_event_utc(obs, event):
     if event == "sunrise":
@@ -114,6 +116,7 @@ def timelapse(event, event_time, seconds_between_pictures=120, verbose=False, ra
             print(command)
 
         time_to_sleep = int((now - datetime.datetime.now()).total_seconds()) + seconds_between_pictures
+        # print("Sleeping for <" + str(time_to_sleep) + "> seconds")
         time.sleep(time_to_sleep)
 
     log("Finished timelapse for event <" + event + ">.")
@@ -141,6 +144,10 @@ def main():
             else:
                 log("You can only do this on the raspberrypi", ERROR=True)
                 time.sleep(wait_time(end(event_time)))
+                log("Going to sleep for <" + str(
+                    wait_time(begin(event_time))) + "> seconds, until <" + str(begin(event_time)) + ">.")
+                time.sleep(wait_time(begin(event_time)))
+                log("Event is now starting, current event is " + current_event + ". Event end time is <" + str(end(event_time)) + ">.")
 
 
 if __name__ == "__main__":
