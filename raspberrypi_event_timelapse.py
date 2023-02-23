@@ -7,7 +7,11 @@ import ephem
 import subprocess
 
 # timespan before and after event in seconds
-TIMESPAN = 90 * 60
+TIMESPAN = 2 * 60 * 60
+
+LOG = True
+def log(s, ERROR=False):
+    if ERROR or LOG: print("<" + str(datetime.datetime.now()) + "> ::" + ("ERROR" if ERROR else "DEBUG") + ":: " + s)
 
 def get_ephem_observer():
     obs = ephem.Observer()
@@ -22,12 +26,10 @@ def get_ephem_observer():
 
     return obs
 
-
 def get_event(obs, event):
     if event == "midnight":
         return datetime.datetime.combine(datetime.date.today(), datetime.time.max)
     return ephem.localtime(get_event_utc(obs, event))
-
 
 def get_event_utc(obs, event):
     if event == "sunrise":
@@ -40,98 +42,105 @@ def get_event_utc(obs, event):
     print("Function get_event_utc has gotten some wrong value:\nobs: " + obs + "\nevent: " + event)
     return False
 
+def begin(event_time):
+    return event_time - datetime.timedelta(seconds=TIMESPAN)
+
+def end(event_time):
+    return event_time + datetime.timedelta(seconds=TIMESPAN)
+
+def wait_time(time):
+    return (time - datetime.datetime.now()).total_seconds()
+
 
 # get_next_event
 #   - timespan_in_minutes := int
 # returns
 #   - currently ongoing or next event if none ongoing
-#   - time from event till now or time until event
+#   - event time
 #   - bool if event is ongoing
 def get_next_event():
     obs=get_ephem_observer()
 
-    print("Checking for next event. Current time: " + str(datetime.datetime.now()))
-    now = datetime.datetime.now()  # current date and time
+    log("Checking for next event.")
     events = ["sunrise", "noon", "sunset", "midnight"]
 
     next_event = "none"  # set as none in the beginning, will either not be used, or changed later
-    seconds_till_next_event = 24 * 60 * 60 + 10  # seconds of a day plus ten seconds, any event is nearer than that
+    next_event_time = datetime.datetime.now() + datetime.timedelta(days=1) # tomorrow
+    ongoing = False
 
     for event in events:
-        # if timediff < 0 event has passed, need to check if its still within timespan
-        timediff = (get_event(obs, event) - now).total_seconds()
+        event_time = get_event(obs, event)
 
-        # and not event == "midnight" ## not necessary since midnight is checked last either way
-        if abs(timediff) <= TIMESPAN / 2:
-            # returns: current event, time from event till now/ or time until event, event is ongoing.
-            return event, timediff, True
+        log("Event " + event + " is at <" + str(event_time) + ">.")
 
-        if 0 <= timediff < seconds_till_next_event:
+        seconds_till_event = (event_time - datetime.datetime.now()).total_seconds()
+        log("Event " + event + " is in <" + str(seconds_till_event) + "> seconds.")
+        if abs(seconds_till_event) <= TIMESPAN:
             next_event = event
-            seconds_till_next_event = timediff
+            next_event_time = event_time
+            ongoing = True
 
-    return next_event, seconds_till_next_event, False  # if it arrives here it will always be false.
+        if not ongoing and datetime.datetime.now() <= event_time < next_event_time:
+            next_event = event
+            next_event_time = event_time
+
+    log("Next event is " + next_event + " at <" + str(next_event_time) + ">" + (", Event is currently ongoing." if ongoing else "."))
+    log("Event start time is <" + str(begin(next_event_time)) + ">.")
+    log("Event end time is <" + str(end(next_event_time)) + ">.")
+    return next_event, next_event_time, ongoing
 
 
-def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=False, stats=False):
-    print("Starting timelapse for event <" + event + ">. current time: <" + str(
-        datetime.datetime.now()) + "> event ends at: <" + str(end_time) + ">.")
+def timelapse(event, event_time, seconds_between_pictures=120, verbose=False, raw=False, stats=False):
+    log("Starting timelapse for event <" + event + ">.")
 
-    while (end_time - datetime.datetime.now()).total_seconds() >= 0:
+    while end(event_time) >= datetime.datetime.now():
         now = datetime.datetime.now()
 
-        if platform.node() == "raspberrypi":
-            timestamp = now.strftime("%Y-%m-%d-%H-%M")
-
-            # print("Making image with raspistill with timestamp: " + timestamp + "...")
-            subprocess.run(["bash", "/home/pi/timelapse/scripts/save_temp.sh", "1"])
-
-            command = "raspistill --nopreview " \
+        timestamp = now.strftime("%Y-%m-%d-%H-%M")
+        command = "raspistill --nopreview " \
                       + ("--verbose " if verbose else "") \
                       + ("--raw " if raw else "") \
                       + ("--stats " if stats else "") \
                       + "--output \"/home/pi/timelapse/" + event + "/" + timestamp + ".jpg\""
+
+        if platform.node() == "raspberrypi":
+
+            # print("Making image with raspistill with timestamp: " + timestamp + "...")
+            subprocess.run(["bash", "/home/pi/timelapse/scripts/save_temp.sh", "1"])
             subprocess.run(command, shell=True)
 
             subprocess.run(["bash", "/home/pi/timelapse/scripts/save_temp.sh", "2"])
+        else:
+            print(command)
 
         time_to_sleep = int((now - datetime.datetime.now()).total_seconds()) + seconds_between_pictures
-        # print("Sleeping for <" + str(time_to_sleep) + "> seconds")
         time.sleep(time_to_sleep)
 
-    print("Finished timelapse for event <" + event + ">. current time: <" + str(datetime.datetime.now()) + ">.")
+    log("Finished timelapse for event <" + event + ">.")
 
 
 def main():
 
     while True:
-        current_event, seconds_till_event, event_ongoing = get_next_event()
-
-        seconds_till_event = int(seconds_till_event)
+        current_event, event_time, event_ongoing = get_next_event()
 
         if current_event == "midnight":  # no timelapse for midnight
-            print("All events for today are over, sleeping until after midnight for <" + str(
-                seconds_till_event + 60) + "> seconds.")
-            time.sleep(seconds_till_event + 60)  # sleep past midnight, waits for next day and checks for next events
+            log("All events for today are over. Sleeping until after midnight.")
+            log("Going to sleep for <" + str(
+                wait_time(end(event_time))) + "> seconds, until <" + str(end(event_time)) + ">.")
+            time.sleep(wait_time(end(event_time)))  # sleep past midnight, waits for next day and checks for next events
         else:
             if not event_ongoing:  # sleep until it is time to start the timelapse
-                print("No event ongoing, next event is <" + current_event + "> in <" + str(
-                    seconds_till_event) + "> seconds. \n Going to sleep for <" + str(
-                    seconds_till_event - TIMESPAN / 2) + "> seconds.")
-                time.sleep(seconds_till_event - TIMESPAN / 2)
-                print("Event is now starting, current event is <" + current_event + ">. Current time: <" + str(
-                    datetime.datetime.now()) + ">.")
-            else:
-                print("Event ongoing, current event is <" + current_event + "> and has been ongoing since <" + str(
-                    (TIMESPAN / 2 - seconds_till_event) / 60) + "> minutes. Current time: <" + str(
-                    datetime.datetime.now()) + ">.")
+                log("Going to sleep for <" + str(
+                    wait_time(begin(event_time))) + "> seconds, until <" + str(begin(event_time)) + ">.")
+                time.sleep(wait_time(begin(event_time)))
+                log("Event is now starting, current event is " + current_event + ". Event end time is <" + str(end(event_time)) + ">.")
 
             if platform.node() == "raspberrypi":
-                event_end_time = datetime.datetime.now() + datetime.timedelta(seconds=TIMESPAN)
-                timelapse(current_event, event_end_time, verbose=False, raw=True, stats=True)
+                timelapse(current_event, event_time, verbose=False, raw=False, stats=True)
             else:
-                print("<" + str(datetime.datetime.now()) + "> ERROR: You can only do this on the raspberrypi")
-                time.sleep(TIMESPAN)
+                log("You can only do this on the raspberrypi", ERROR=True)
+                time.sleep(wait_time(end(event_time)))
 
 
 if __name__ == "__main__":
