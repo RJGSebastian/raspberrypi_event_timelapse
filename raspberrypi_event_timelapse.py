@@ -93,7 +93,7 @@ def get_next_event():
 
 
 def timelapse(event, event_time, seconds_between_pictures=120, verbose=False, raw=False, stats=False):
-    log("Starting timelapse for event <" + event + ">.")
+    log("Starting timelapse for event " + event + ".")
 
     while end(event_time) >= datetime.datetime.now():
         now = datetime.datetime.now()
@@ -117,7 +117,7 @@ def timelapse(event, event_time, seconds_between_pictures=120, verbose=False, ra
         time_to_sleep = int((now - datetime.datetime.now()).total_seconds()) + seconds_between_pictures
         time.sleep(time_to_sleep)
 
-    log("Finished timelapse for event <" + event + ">.")
+    log("Finished timelapse for event " + event + ".")
 
 
 def main():
