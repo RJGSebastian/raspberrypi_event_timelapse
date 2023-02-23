@@ -7,7 +7,7 @@ import ephem
 import subprocess
 
 # timespan before and after event in seconds
-TIMESPAN = 2 * 60 * 60
+TIMESPAN = 60 * 60
 
 LOG = True
 def log(s, ERROR=False):
