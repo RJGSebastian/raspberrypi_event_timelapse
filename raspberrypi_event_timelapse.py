@@ -95,7 +95,7 @@ def get_next_event():
 def timelapse(event, event_time, seconds_between_pictures=120, verbose=False, raw=False, stats=False):
     log("Starting timelapse for event " + event + ".")
 
-    while end(event_time) >= datetime.datetime.now():
+    while end(event_time) + datetime.timedelta(minutes=1) >= datetime.datetime.now():
         now = datetime.datetime.now()
 
         timestamp = now.strftime("%Y-%m-%d-%H-%M")
