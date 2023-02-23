@@ -41,7 +41,7 @@ def get_event_utc(obs, event):
     if event == "sunset":
         return obs.next_setting(ephem.Sun())
 
-    print("Function get_event_utc has gotten some wrong value:\nobs: " + obs + "\nevent: " + event)
+    log("Function get_event_utc has gotten some wrong value:\nobs: " + obs + "\nevent: " + event, ERROR=True)
     return False
 
 def begin(event_time):
@@ -107,16 +107,14 @@ def timelapse(event, event_time, seconds_between_pictures=120, verbose=False, ra
 
         if platform.node() == "raspberrypi":
 
-            # print("Making image with raspistill with timestamp: " + timestamp + "...")
             subprocess.run(["bash", "/home/pi/timelapse/scripts/save_temp.sh", "1"])
             subprocess.run(command, shell=True)
 
             subprocess.run(["bash", "/home/pi/timelapse/scripts/save_temp.sh", "2"])
         else:
-            print(command)
+            log(command)
 
         time_to_sleep = int((now - datetime.datetime.now()).total_seconds()) + seconds_between_pictures
-        # print("Sleeping for <" + str(time_to_sleep) + "> seconds")
         time.sleep(time_to_sleep)
 
     log("Finished timelapse for event <" + event + ">.")
@@ -147,5 +145,5 @@ def main():
 
 
 if __name__ == "__main__":
-    print("Starting raspberrypi_event_timelapse.py")
+    log("Starting raspberrypi_event_timelapse.py")
     main()
