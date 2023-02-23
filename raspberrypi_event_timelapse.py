@@ -144,10 +144,6 @@ def main():
             else:
                 log("You can only do this on the raspberrypi", ERROR=True)
                 time.sleep(wait_time(end(event_time)))
-                log("Going to sleep for <" + str(
-                    wait_time(begin(event_time))) + "> seconds, until <" + str(begin(event_time)) + ">.")
-                time.sleep(wait_time(begin(event_time)))
-                log("Event is now starting, current event is " + current_event + ". Event end time is <" + str(end(event_time)) + ">.")
 
 
 if __name__ == "__main__":
