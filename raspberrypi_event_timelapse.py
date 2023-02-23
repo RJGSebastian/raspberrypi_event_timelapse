@@ -79,6 +79,7 @@ def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=
 
     while (end_time - datetime.datetime.now()).total_seconds() >= 0:
         now = datetime.datetime.now()
+
         if platform.node() == "raspberrypi":
             timestamp = now.strftime("%Y-%m-%d-%H-%M")
 
@@ -93,8 +94,6 @@ def timelapse(event, end_time, seconds_between_pictures=120, verbose=False, raw=
             subprocess.run(command, shell=True)
 
             subprocess.run(["bash", "/home/pi/timelapse/scripts/save_temp.sh", "2"])
-        else:
-            print("You can only do this on the raspberrypi")
 
         time_to_sleep = int((now - datetime.datetime.now()).total_seconds()) + seconds_between_pictures
         # print("Sleeping for <" + str(time_to_sleep) + "> seconds")
@@ -127,8 +126,12 @@ def main():
                     (TIMESPAN / 2 - seconds_till_event) / 60) + "> minutes. Current time: <" + str(
                     datetime.datetime.now()) + ">.")
 
-            event_end_time = datetime.datetime.now() + datetime.timedelta(seconds=TIMESPAN)
-            timelapse(current_event, event_end_time, verbose=False, raw=True, stats=True)
+            if platform.node() == "raspberrypi":
+                event_end_time = datetime.datetime.now() + datetime.timedelta(seconds=TIMESPAN)
+                timelapse(current_event, event_end_time, verbose=False, raw=True, stats=True)
+            else:
+                print("<" + str(datetime.datetime.now()) + "> ERROR: You can only do this on the raspberrypi")
+                time.sleep(TIMESPAN)
 
 
 if __name__ == "__main__":
