@@ -8,13 +8,16 @@ FILEPATH = "/home/pi/timelapse/"
 # save temperatures (requires vcgenmod)
 SAVETEMP = True
 
+# events to check
+EVENTS = ["sunrise", "noon", "sunset", "midnight"]
+
 # timespan before and after event in seconds
 TIMESPAN = 60 * 60
 
 LOG = True
 def log(s, ERROR=False):
     if ERROR or LOG:
-        log_file = "log_" + datetime.datetime.now().strftime("%Y-%m-%d")
+        log_file = FILEPATH + "logs/log_" + datetime.datetime.now().strftime("%Y-%m-%d")
         msg = " ::" + ("ERROR" if ERROR else "DEBUG") + ":: " + s
 
         print(msg)
@@ -73,13 +76,12 @@ def get_next_event():
     obs=get_ephem_observer()
 
     log("Checking for next event.")
-    events = ["sunrise", "noon", "sunset", "midnight"]
 
     next_event = "none"  # set as none in the beginning, will either not be used, or changed later
     next_event_time = datetime.datetime.now() + datetime.timedelta(days=1) # tomorrow
     ongoing = False
 
-    for event in events:
+    for event in EVENTS:
         event_time = get_event(obs, event)
 
         log("Event " + event + " is at <" + str(event_time) + ">.")
@@ -117,9 +119,6 @@ def timelapse(event, event_time, seconds_between_pictures=180, verbose=False, ra
         if platform.node() == "raspberrypi":
             if SAVETEMP: subprocess.run(["bash", "/opt/raspberrypi_event_timelapse/save_temp.sh", "1", FILEPATH])
 
-            if not os.path.exists(FILEPATH + event):
-                os.makedirs(FILEPATH + event)
-
             subprocess.run(command, shell=True)
 
             if SAVETEMP: subprocess.run(["bash", "/opt/raspberrypi_event_timelapse/save_temp.sh", "2", FILEPATH])
@@ -133,6 +132,13 @@ def timelapse(event, event_time, seconds_between_pictures=180, verbose=False, ra
 
 
 def main():
+
+    for event in EVENTS:
+        if not os.path.exists(FILEPATH + event):
+            os.makedirs(FILEPATH + event)
+
+    if not os.path.exists(FILEPATH + "logs"):
+        os.makedirs(FILEPATH + "logs")
 
     while True:
         current_event, event_time, event_ongoing = get_next_event()
