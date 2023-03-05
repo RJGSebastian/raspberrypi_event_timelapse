@@ -21,10 +21,10 @@ def log(s, ERROR=False, LOG=True):
 
     print(msg)
     if ERROR or LOG:
-        log_file = FILEPATH + "logs/log_" + datetime.datetime.now().strftime("%Y-%m-%d")
+        log_file = FILEPATH + "logs/log_" + datetime.datetime.now().strftime("%Y-%m-%d") + ".log"
 
         with open(log_file, "a") as of:
-            of.write("<" + str(datetime.datetime.now()) + ">" + msg)
+            of.write("<" + str(datetime.datetime.now()) + ">" + msg + "\n")
 
 
 def save_temp(num):
