@@ -13,7 +13,14 @@ TIMESPAN = 60 * 60
 
 LOG = True
 def log(s, ERROR=False):
-    if ERROR or LOG: print("<" + str(datetime.datetime.now()) + "> ::" + ("ERROR" if ERROR else "DEBUG") + ":: " + s)
+    if ERROR or LOG:
+        log_file = "log_" + datetime.datetime.now().strftime("%Y-%m-%d")
+        msg = " ::" + ("ERROR" if ERROR else "DEBUG") + ":: " + s
+
+        print(msg)
+        with open(log_file, "a") as of:
+            of.write("<" + str(datetime.datetime.now()) + ">" + msg)
+
 
 def get_ephem_observer():
     obs = ephem.Observer()
