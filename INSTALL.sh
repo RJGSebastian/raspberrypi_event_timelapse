@@ -50,7 +50,7 @@ fi
 
 echo "Installing necessary python packages"
 
-required_python_packages=("ephem" "datetime")
+required_python_packages=("ephem" "datetime" "platform" "time" "subprocess")
 # installing python packages
 # shellcheck disable=SC2068
 sudo /usr/bin/env pip3 install ${required_python_packages[@]}
