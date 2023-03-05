@@ -6,7 +6,7 @@ sudo mkdir -p "/opt/raspberrypi_event_timelapse"
 
 # moving script
 echo "Copying files to installation directory..."
-sudo cp "$PWD/raspberrypi_event_timelapse.py" "$PWD/save_temp.sh" "/opt/raspberrypi_event_timelapse/"
+sudo cp "$PWD/raspberrypi_event_timelapse.py" "/opt/raspberrypi_event_timelapse/"
 
 # moving service file
 echo "Copying service files to systemd directory"
@@ -50,7 +50,7 @@ fi
 
 echo "Installing necessary python packages"
 
-required_python_packages=("ephem" "datetime" "platform" "time" "subprocess os")
+required_python_packages=("ephem" "datetime" "platform" "time" "subprocess" "os" "gpiozero")
 # installing python packages
 # shellcheck disable=SC2068
 sudo /usr/bin/env pip3 install ${required_python_packages[@]}

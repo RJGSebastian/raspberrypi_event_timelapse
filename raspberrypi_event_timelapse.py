@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import platform, time, datetime, ephem, subprocess, os
+from gpiozero import CPUTemperature
 
 # path to store files
 FILEPATH = "/home/pi/timelapse/"
@@ -14,15 +15,24 @@ EVENTS = ["sunrise", "noon", "sunset", "midnight"]
 # timespan before and after event in seconds
 TIMESPAN = 60 * 60
 
-LOG = True
-def log(s, ERROR=False):
+
+def log(s, ERROR=False, LOG=True):
+    msg = " ::" + ("ERROR" if ERROR else "DEBUG") + ":: " + s
+
+    print(msg)
     if ERROR or LOG:
         log_file = FILEPATH + "logs/log_" + datetime.datetime.now().strftime("%Y-%m-%d")
-        msg = " ::" + ("ERROR" if ERROR else "DEBUG") + ":: " + s
 
-        print(msg)
         with open(log_file, "a") as of:
             of.write("<" + str(datetime.datetime.now()) + ">" + msg)
+
+
+def save_temp(num):
+    temp_file = FILEPATH + "cpu_temps.csv"
+    cpu = CPUTemperature()
+
+    with open(temp_file, "a") as of:
+        of.write(datetime.datetime.now().strftime("%s") + "," + num + "," + cpu.temperature)
 
 
 def get_ephem_observer():
@@ -56,11 +66,14 @@ def get_event_utc(obs, event):
     log("Function get_event_utc has gotten some wrong value:\nobs: " + obs + "\nevent: " + event, ERROR=True)
     return False
 
+
 def begin(event_time):
     return event_time - datetime.timedelta(seconds=TIMESPAN)
 
+
 def end(event_time):
     return event_time + datetime.timedelta(seconds=TIMESPAN)
+
 
 def wait_time(time):
     return (time - datetime.datetime.now()).total_seconds()
@@ -73,12 +86,12 @@ def wait_time(time):
 #   - event time
 #   - bool if event is ongoing
 def get_next_event():
-    obs=get_ephem_observer()
+    obs = get_ephem_observer()
 
     log("Checking for next event.")
 
     next_event = "none"  # set as none in the beginning, will either not be used, or changed later
-    next_event_time = datetime.datetime.now() + datetime.timedelta(days=1) # tomorrow
+    next_event_time = datetime.datetime.now() + datetime.timedelta(days=1)  # tomorrow
     ongoing = False
 
     for event in EVENTS:
@@ -97,7 +110,8 @@ def get_next_event():
             next_event = event
             next_event_time = event_time
 
-    log("Next event is " + next_event + " at <" + str(next_event_time) + ">" + (", Event is currently ongoing." if ongoing else "."))
+    log("Next event is " + next_event + " at <" + str(next_event_time) + ">" + (
+        ", Event is currently ongoing." if ongoing else "."))
     log("Event start time is <" + str(begin(next_event_time)) + ">.")
     log("Event end time is <" + str(end(next_event_time)) + ">.")
     return next_event, next_event_time, ongoing
@@ -111,17 +125,17 @@ def timelapse(event, event_time, seconds_between_pictures=180, verbose=False, ra
 
         timestamp = now.strftime("%Y-%m-%d-%H-%M")
         command = "raspistill --nopreview " \
-                      + ("--verbose " if verbose else "") \
-                      + ("--raw " if raw else "") \
-                      + ("--stats " if stats else "") \
-                      + "--output \"" + FILEPATH + event + "/" + timestamp + ".jpg\""
+                  + ("--verbose " if verbose else "") \
+                  + ("--raw " if raw else "") \
+                  + ("--stats " if stats else "") \
+                  + "--output \"" + FILEPATH + event + "/" + timestamp + ".jpg\""
 
         if platform.node() == "raspberrypi":
-            if SAVETEMP: subprocess.run(["bash", "/opt/raspberrypi_event_timelapse/save_temp.sh", "1", FILEPATH])
+            if SAVETEMP: save_temp(1)
 
             subprocess.run(command, shell=True)
 
-            if SAVETEMP: subprocess.run(["bash", "/opt/raspberrypi_event_timelapse/save_temp.sh", "2", FILEPATH])
+            if SAVETEMP: save_temp(2)
         else:
             log(command)
 
@@ -132,7 +146,6 @@ def timelapse(event, event_time, seconds_between_pictures=180, verbose=False, ra
 
 
 def main():
-
     for event in EVENTS:
         if not os.path.exists(FILEPATH + event):
             os.makedirs(FILEPATH + event)
@@ -153,7 +166,8 @@ def main():
                 log("Going to sleep for <" + str(
                     wait_time(begin(event_time))) + "> seconds, until <" + str(begin(event_time)) + ">.")
                 time.sleep(wait_time(begin(event_time)))
-                log("Event is now starting, current event is " + current_event + ". Event end time is <" + str(end(event_time)) + ">.")
+                log("Event is now starting, current event is " + current_event + ". Event end time is <" + str(
+                    end(event_time)) + ">.")
 
             if platform.node() == "raspberrypi":
                 timelapse(current_event, event_time, verbose=False, raw=False, stats=True)
