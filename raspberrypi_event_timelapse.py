@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
-import platform
-import time
-import datetime
-import ephem
-import subprocess
+import platform, time, datetime, ephem, subprocess, os
+
+# path to store files
+FILEPATH = "/home/pi/timelapse/"
+
+# save temperatures (requires vcgenmod)
+SAVETEMP = True
 
 # timespan before and after event in seconds
 TIMESPAN = 60 * 60
@@ -92,7 +94,7 @@ def get_next_event():
     return next_event, next_event_time, ongoing
 
 
-def timelapse(event, event_time, seconds_between_pictures=120, verbose=False, raw=False, stats=False):
+def timelapse(event, event_time, seconds_between_pictures=180, verbose=False, raw=False, stats=False):
     log("Starting timelapse for event " + event + ".")
 
     while end(event_time) + datetime.timedelta(minutes=1) >= datetime.datetime.now():
@@ -103,14 +105,17 @@ def timelapse(event, event_time, seconds_between_pictures=120, verbose=False, ra
                       + ("--verbose " if verbose else "") \
                       + ("--raw " if raw else "") \
                       + ("--stats " if stats else "") \
-                      + "--output \"/home/pi/timelapse/" + event + "/" + timestamp + ".jpg\""
+                      + "--output \"" + FILEPATH + event + "/" + timestamp + ".jpg\""
 
         if platform.node() == "raspberrypi":
+            if SAVETEMP: subprocess.run(["bash", "/opt/raspberrypi_event_timelapse/save_temp.sh", "1", FILEPATH])
 
-            subprocess.run(["bash", "/home/pi/timelapse/scripts/save_temp.sh", "1"])
+            if not os.path.exists(FILEPATH + event):
+                os.makedirs(FILEPATH + event)
+
             subprocess.run(command, shell=True)
 
-            subprocess.run(["bash", "/home/pi/timelapse/scripts/save_temp.sh", "2"])
+            if SAVETEMP: subprocess.run(["bash", "/opt/raspberrypi_event_timelapse/save_temp.sh", "2", FILEPATH])
         else:
             log(command)
 
